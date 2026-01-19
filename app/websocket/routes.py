@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
@@ -64,12 +65,15 @@ async def websocket_endpoint(
                     client_message = UnsubscribeMessage(**message)
                     await handle_unsubscribe(client_id, client_message, db)
                 elif msg_type == "ping":
-                    pong_message = {"type": "pong", "timestamp": "2026-01-16T12:00:00Z"}
+                    pong_message = {
+                        "type": "pong",
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    }
                     await connection_manager.send_message(client_id, pong_message)
                 else:
                     error_message = {
                         "type": "error",
-                        "timestamp": "2026-01-16T12:00:00Z",
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
                         "message": "Invalid message type",
                         "code": "INVALID_TYPE",
                     }
@@ -77,7 +81,7 @@ async def websocket_endpoint(
             except Exception:
                 error_message = {
                     "type": "error",
-                    "timestamp": "2026-01-16T12:00:00Z",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "message": "Invalid message format",
                     "code": "INVALID_FORMAT",
                 }
@@ -90,12 +94,10 @@ async def websocket_endpoint(
 async def handle_subscribe(
     client_id: str, username: Optional[str], message: SubscribeMessage, db: AsyncSession
 ):
-    from datetime import datetime, timezone
-
     if not username:
         error_message = {
             "type": "error",
-            "timestamp": "2026-01-16T12:00:00Z",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "message": "Authentication required",
             "code": "AUTH_REQUIRED",
         }
@@ -109,7 +111,7 @@ async def handle_subscribe(
     if len(session.subscriptions) >= MAX_SUBSCRIPTIONS_PER_USER:
         error_message = {
             "type": "error",
-            "timestamp": "2026-01-16T12:00:00Z",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "message": f"Maximum {MAX_SUBSCRIPTIONS_PER_USER} subscriptions allowed",
             "code": "MAX_SUBSCRIPTIONS",
         }
@@ -121,7 +123,7 @@ async def handle_subscribe(
         valid_topics = model_registry.get_all_topics()
         error_message = {
             "type": "error",
-            "timestamp": "2026-01-16T12:00:00Z",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "message": f"Invalid topic. Valid topics: {', '.join(valid_topics)}",
             "code": "INVALID_TOPIC",
         }
@@ -159,7 +161,7 @@ async def handle_subscribe(
     else:
         error_message = {
             "type": "error",
-            "timestamp": "2026-01-16T12:00:00Z",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "message": f"Plugin not found for topic: {message.topic}",
             "code": "PLUGIN_NOT_FOUND",
         }
@@ -189,7 +191,7 @@ async def handle_unsubscribe(
             "type": "unsubscribed",
             "topic": message.topic,
             "subscription_id": subscription_to_remove,
-            "timestamp": "2026-01-16T12:00:00Z",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
         await connection_manager.send_message(client_id, unsubscribed_message)

@@ -9,6 +9,18 @@ from app.main import app
 
 
 @pytest_asyncio.fixture
+async def auth_headers(async_client: AsyncClient) -> dict:
+    """Create authorization headers for authenticated requests."""
+    response = await async_client.post(
+        "/api/v1/auth/login", data={"username": "admin", "password": "admin"}
+    )
+    assert response.status_code == 200
+    tokens = response.json()
+    access_token = tokens["access_token"]
+    return {"Authorization": f"Bearer {access_token}"}
+
+
+@pytest_asyncio.fixture
 async def async_engine() -> AsyncGenerator[AsyncEngine, None]:
     """Create in-memory SQLite engine for tests."""
     engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
@@ -28,6 +40,12 @@ async def async_session(
     )
     async with async_session() as session:
         yield session
+
+
+@pytest_asyncio.fixture
+async def db_session(async_session: AsyncSession) -> AsyncSession:
+    """Alias for async_session fixture."""
+    return async_session
 
 
 @pytest_asyncio.fixture

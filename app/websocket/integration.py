@@ -29,7 +29,7 @@ class ModelEventHelper:
         from app.websocket.event_bus import get_event_processor
 
         record_id = getattr(instance, "id")
-        record_data = to_dict_func(instance)
+        record_data = await to_dict_func(instance)
 
         event_processor = get_event_processor(db, connection_manager)
         await event_processor.publish_model_event(

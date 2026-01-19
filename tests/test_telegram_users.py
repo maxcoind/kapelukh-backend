@@ -5,8 +5,8 @@ from app.models.telegram_user import TelegramUser
 
 
 @pytest.mark.asyncio
-async def test_create_telegram_user(client: AsyncClient, auth_headers: dict):
-    response = await client.post(
+async def test_create_telegram_user(async_client: AsyncClient, auth_headers: dict):
+    response = await async_client.post(
         "/api/v1/telegram-users/",
         json={
             "telegram_id": 123456789,
@@ -29,7 +29,7 @@ async def test_create_telegram_user(client: AsyncClient, auth_headers: dict):
 
 @pytest.mark.asyncio
 async def test_create_duplicate_telegram_user(
-    client: AsyncClient,
+    async_client: AsyncClient,
     auth_headers: dict,
     db_session,
 ):
@@ -41,7 +41,7 @@ async def test_create_duplicate_telegram_user(
     db_session.add(user)
     await db_session.commit()
 
-    response = await client.post(
+    response = await async_client.post(
         "/api/v1/telegram-users/",
         json={
             "telegram_id": 123456789,
@@ -54,7 +54,9 @@ async def test_create_duplicate_telegram_user(
 
 
 @pytest.mark.asyncio
-async def test_get_telegram_user(client: AsyncClient, auth_headers: dict, db_session):
+async def test_get_telegram_user(
+    async_client: AsyncClient, auth_headers: dict, db_session
+):
     user = TelegramUser(
         telegram_id=123456789,
         username="testuser",
@@ -64,7 +66,7 @@ async def test_get_telegram_user(client: AsyncClient, auth_headers: dict, db_ses
     await db_session.commit()
     await db_session.refresh(user)
 
-    response = await client.get(
+    response = await async_client.get(
         f"/api/v1/telegram-users/{user.telegram_id}",
         headers=auth_headers,
     )
@@ -74,8 +76,10 @@ async def test_get_telegram_user(client: AsyncClient, auth_headers: dict, db_ses
 
 
 @pytest.mark.asyncio
-async def test_get_telegram_user_not_found(client: AsyncClient, auth_headers: dict):
-    response = await client.get(
+async def test_get_telegram_user_not_found(
+    async_client: AsyncClient, auth_headers: dict
+):
+    response = await async_client.get(
         "/api/v1/telegram-users/999999999",
         headers=auth_headers,
     )
@@ -84,7 +88,7 @@ async def test_get_telegram_user_not_found(client: AsyncClient, auth_headers: di
 
 @pytest.mark.asyncio
 async def test_get_telegram_users(
-    client: AsyncClient,
+    async_client: AsyncClient,
     auth_headers: dict,
     db_session,
 ):
@@ -98,7 +102,7 @@ async def test_get_telegram_users(
         db_session.add(user)
     await db_session.commit()
 
-    response = await client.get(
+    response = await async_client.get(
         "/api/v1/telegram-users/?skip=0&limit=10&is_active=true",
         headers=auth_headers,
     )
@@ -109,7 +113,7 @@ async def test_get_telegram_users(
 
 @pytest.mark.asyncio
 async def test_get_telegram_users_with_username_filter(
-    client: AsyncClient,
+    async_client: AsyncClient,
     auth_headers: dict,
     db_session,
 ):
@@ -121,7 +125,7 @@ async def test_get_telegram_users_with_username_filter(
     db_session.add(user)
     await db_session.commit()
 
-    response = await client.get(
+    response = await async_client.get(
         "/api/v1/telegram-users/?username=test",
         headers=auth_headers,
     )
@@ -133,7 +137,7 @@ async def test_get_telegram_users_with_username_filter(
 
 @pytest.mark.asyncio
 async def test_update_telegram_user(
-    client: AsyncClient,
+    async_client: AsyncClient,
     auth_headers: dict,
     db_session,
 ):
@@ -146,7 +150,7 @@ async def test_update_telegram_user(
     await db_session.commit()
     await db_session.refresh(user)
 
-    response = await client.put(
+    response = await async_client.put(
         f"/api/v1/telegram-users/{user.telegram_id}",
         json={"first_name": "Updated"},
         headers=auth_headers,
@@ -158,7 +162,7 @@ async def test_update_telegram_user(
 
 @pytest.mark.asyncio
 async def test_soft_delete_telegram_user(
-    client: AsyncClient,
+    async_client: AsyncClient,
     auth_headers: dict,
     db_session,
 ):
@@ -172,7 +176,7 @@ async def test_soft_delete_telegram_user(
     await db_session.commit()
     await db_session.refresh(user)
 
-    response = await client.delete(
+    response = await async_client.delete(
         f"/api/v1/telegram-users/{user.telegram_id}",
         headers=auth_headers,
     )
@@ -184,7 +188,7 @@ async def test_soft_delete_telegram_user(
 
 @pytest.mark.asyncio
 async def test_update_last_interaction(
-    client: AsyncClient,
+    async_client: AsyncClient,
     auth_headers: dict,
     db_session,
 ):
@@ -197,7 +201,7 @@ async def test_update_last_interaction(
     await db_session.commit()
     await db_session.refresh(user)
 
-    response = await client.patch(
+    response = await async_client.patch(
         f"/api/v1/telegram-users/{user.telegram_id}/last-interaction",
         headers=auth_headers,
     )
@@ -207,6 +211,6 @@ async def test_update_last_interaction(
 
 
 @pytest.mark.asyncio
-async def test_unauthorized_access(client: AsyncClient):
-    response = await client.get("/api/v1/telegram-users/")
+async def test_unauthorized_access(async_client: AsyncClient):
+    response = await async_client.get("/api/v1/telegram-users/")
     assert response.status_code == 401

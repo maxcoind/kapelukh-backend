@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import List, Optional
 
@@ -74,7 +74,7 @@ async def update(
     obj_data = obj_in.model_dump(exclude_unset=True)
     for field, value in obj_data.items():
         setattr(db_obj, field, value)
-    db_obj.updated_at = datetime.now()
+    db_obj.updated_at = datetime.now(timezone.utc)
     session.add(db_obj)
     await session.commit()
     await session.refresh(db_obj)
