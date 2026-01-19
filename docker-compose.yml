@@ -6,6 +6,8 @@ services:
       - "127.0.0.1:8000:8000"
     depends_on:
       - db
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=postgresql+asyncpg://user:password@db:5432/dbname
     networks:
