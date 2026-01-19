@@ -1,18 +1,27 @@
 version: "3.8"
 services:
-  kapelukh-backend:
+  backend:
     build: .
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     depends_on:
-      - kapelukh-db
+      - db
     environment:
       - DATABASE_URL=postgresql+asyncpg://user:password@db:5432/dbname
-  kapelukh-db:
+    networks:
+      - private_net
+      - public_net
+
+  db:
     image: postgres:13
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: dbname
-    ports:
-      - "5432:5432"
+    networks:
+      - private_net
+networks:
+  private_net:
+    internal: true # Completely isolates this network from the outside world
+  public_net:
+    driver: bridge
