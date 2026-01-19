@@ -22,9 +22,6 @@ services:
       POSTGRES_DB: dbname
     networks:
       - private_net
-      - public_net
-    ports:
-      - "5432:5432"
 
 networks:
   private_net:
