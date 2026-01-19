@@ -1,5 +1,5 @@
 FROM python:3.14
-WORKDIR /app
+WORKDIR /
 
 COPY app ./
 COPY uv.lock ./
