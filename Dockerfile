@@ -1,7 +1,7 @@
 FROM python:3.14
-WORKDIR /
+WORKDIR /app
 
-COPY app ./
+COPY app ./app/
 COPY uv.lock ./
 COPY pyproject.toml ./
 RUN pip install --no-cache-dir uv

@@ -8,9 +8,9 @@ from sqlalchemy import text
 
 from .api import payments_router
 from .api.auth import router as auth_router
+from .api.survey import router as survey_router
 from .api.telegram_users import router as telegram_users_router
 from .api.telegram_webhook import router as telegram_webhook_router
-from .api.survey import router as survey_router
 from .bot import (
     get_bot,
     get_dispatcher,
@@ -105,7 +105,11 @@ async def lifespan(app: FastAPI):
         logger.info("Telegram bot stopped")
 
         logger.info("Shutting down...")
-        await get_engine().dispose()
+        try:
+            await get_engine().dispose()
+        except asyncio.CancelledError:
+            # Expected during container shutdown
+            pass
         logger.info("Database engine disposed")
 
 
