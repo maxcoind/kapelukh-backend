@@ -127,7 +127,11 @@ app.include_router(ws_router, prefix="/ws", tags=["websocket"])
 origins = []
 
 if settings.DOMAIN:
-    origins.append(settings.DOMAIN)
+    origins.append(f"http://{settings.DOMAIN}")
+    origins.append(f"https://{settings.DOMAIN}")
+    origins.append(f"http://www.{settings.DOMAIN}")
+    origins.append(f"https://www.{settings.DOMAIN}")
+
 else:
     origins.append("http://localhost:3000")
     origins.append("http://127.0.0.1:3000")
