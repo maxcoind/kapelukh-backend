@@ -4,7 +4,7 @@ from pydantic_ai.providers.google import GoogleProvider
 
 from app.config import settings
 from app.logger import get_logger
-from app.schemas.survey import ValidationResult
+from app.schemas.survey import PsychologicalReflection, ValidationResult
 
 logger = get_logger(__name__)
 
@@ -13,7 +13,7 @@ _soft_survey_agent = None
 
 
 def _initialize_ai():
-    global _model, _soft_survey_agent
+    global _model, _soft_survey_agent, _psych_agent
     provider = GoogleProvider(api_key=settings.GEMINI_API_KEY)
     _model = GoogleModel("gemini-3-flash-preview", provider=provider)
     _soft_survey_agent = Agent(
@@ -30,9 +30,37 @@ def _initialize_ai():
         ),
     )
 
+    # Створюємо агента-психолога
+    _psych_agent = Agent(
+        _model,
+        output_type=PsychologicalReflection,
+        system_prompt=(
+            "Ти — мудрий психолог та коуч. Твоє завдання — проаналізувати анкету волевиявлення. "
+            "Подивись на розділи 'Вдосконалення', 'Суперсили' та 'Цілі'. "
+            "Знайди в них спільну нитку. Підтримай людину, поясни, як її риси допоможуть досягти її духовної мети. "
+            "Будь емпатичним, використовуй термінологію цілісності та самореалізації. "
+            "Твоя відповідь має надихати, а не критикувати."
+        ),
+    )
+
 
 def is_ai_available() -> bool:
     return settings.is_ai_enabled()
+
+
+async def process_psychological_survey(text: str) -> PsychologicalReflection:
+    if not is_ai_available():
+        raise RuntimeError(
+            "AI service is not available. Please check GEMINI_API_KEY configuration."
+        )
+
+    if _psych_agent is None:
+        _initialize_ai()
+
+    if _psych_agent is None:
+        raise RuntimeError("AI agent is not initialized.")
+    result = await _psych_agent.run(text)
+    return result.output
 
 
 async def process_soft_survey(text: str) -> ValidationResult:

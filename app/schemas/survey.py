@@ -1,6 +1,6 @@
 from datetime import datetime
-from typing import Dict, List, Optional
 from enum import Enum
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -73,3 +73,14 @@ class ValidationResult(BaseModel):
     is_valid: bool
     data: UserSurvey
     suggestions: Optional[str] = None
+
+
+class PsychologicalReflection(BaseModel):
+    archetype: str = Field(description="Психологічний образ або архетип користувача")
+    analysis: str = Field(
+        description="Глибокий аналіз зв'язку між талантами та духовними цілями"
+    )
+    supportive_message: str = Field(description="Теплі слова підтримки та натхнення")
+    potential_conflict: str | None = Field(
+        description="М'яке зауваження, якщо цілі суперечать одна одній"
+    )

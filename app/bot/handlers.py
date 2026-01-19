@@ -1,6 +1,8 @@
 from aiogram import Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
+from aiogram.utils.markdown import hbold, hitalic
+from sqlalchemy.exc import IntegrityError
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.config import settings
@@ -13,6 +15,9 @@ from app.crud.telegram_user import (
 from app.schemas.telegram_user import TelegramUserCreate
 
 router = Router()
+from app.logger import get_logger
+
+logger = get_logger("telegram.bot.handlers")
 
 
 @router.message(CommandStart())
@@ -119,35 +124,51 @@ async def handle_survey(message: Message, session: AsyncSession):
 
     await update_last_interaction(session, message.from_user.id)
 
-    status_msg = await message.answer("✨ Приймаю ваше волевиявлення...")
+    status_msg = await message.answer(
+        "✨ Приймаю ваше волевиявлення...", parse_mode="HTML"
+    )
 
     try:
-        from app.services.survey_ai import process_soft_survey
+        from app.services.survey_ai import (
+            process_psychological_survey,
+            process_soft_survey,
+        )
 
         result = await process_soft_survey(message.text)
 
         if result.is_valid:
-            await save_user_survey(
-                session=session,
-                user_id=message.from_user.id,
-                validation_result=result,
-            )
+            try:
+                await save_user_survey(
+                    session=session,
+                    user_id=message.from_user.id,
+                    validation_result=result,
+                )
+            except IntegrityError:
+                await status_msg.edit_text("You already have a survey registered.")
+                return
+            except Exception:
+                await status_msg.edit_text(
+                    "Здається, ви надіслали щось інше. Будь ласка, надішліть вашу анкету."
+                )
+                return
 
-            first_name = result.data.full_name.get("first_name", "Друже")
-            response = f"🙏 Дякую, {first_name}, вашу анкету прийнято."
+            analysis = await process_psychological_survey(message.text)
 
+            response = f"🙏 {hbold('Ваш намір прийнято, ' + result.data.full_name.get('first_name', 'Друже'))}.\n\n"
             if result.suggestions:
-                response += f"\n\nПорада від серця: {result.suggestions}"
-
-            await status_msg.edit_text(response)
+                response += f"{hbold('Порада від серця:')} \n{result.suggestions}\n\n"
+            response += (
+                f"{hbold('Віддзеркалення Вашої суті:')}\n"
+                f"{hitalic(analysis.analysis)}\n\n"
+                f"{hbold('Ваш архетип:')} {analysis.archetype}\n\n"
+                f"{analysis.supportive_message}"
+            )
+            await status_msg.edit_text(response, parse_mode="HTML")
         else:
             await status_msg.edit_text(
                 "Здається, ви надіслали щось інше. Будь ласка, надішліть вашу анкету."
             )
     except Exception as e:
-        from app.logger import get_logger
-
-        logger = get_logger(__name__)
         logger.error(f"Error processing survey: {e}")
         await status_msg.edit_text(
             "Вибачте, сталася помилка при обробці вашої анкети. Спробуйте пізніше."
