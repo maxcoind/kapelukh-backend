@@ -88,20 +88,32 @@ async def create_user(
 - Use SQLModel for database models
 - Inherit from SQLModel with `table=True`
 - Use `Field()` for constraints and defaults
-- Always use `datetime.now(timezone.utc)` for timestamps
+- **Datetime fields**: Use `Column(DateTime(timezone=True), nullable=False)` with `default_factory=lambda: datetime.now(timezone.utc)`
+- **Optional datetime fields**: Use `Column(DateTime(timezone=True))` with `default=None`
 - Soft delete: use `is_active` boolean field instead of hard deletes
 - Query with SQLAlchemy's `select()` and async session
 
 Example:
 ```python
-from sqlmodel import Field, SQLModel
+from sqlmodel import Column, DateTime, Field, SQLModel
 from datetime import datetime, timezone
 
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(max_length=64)
     is_active: bool = Field(default=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
+    updated_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
+    last_seen: Optional[datetime] = Field(
+        sa_column=Column(DateTime(timezone=True)),
+        default=None,
+    )
 ```
 
 ### API Routes

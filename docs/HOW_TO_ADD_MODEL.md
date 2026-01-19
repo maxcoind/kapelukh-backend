@@ -22,21 +22,33 @@ File: `app/models/{model_name}.py`
 ```python
 from typing import Optional
 from datetime import datetime, timezone
-from sqlmodel import Field, SQLModel
+from sqlmodel import Column, DateTime, Field, SQLModel
 
 
 class {ModelName}(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     # Add your fields here
     name: str = Field(max_length=64, index=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
+    updated_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
+    last_active: Optional[datetime] = Field(
+        sa_column=Column(DateTime(timezone=True)),
+        default=None,
+    )
 ```
 
 **Key Points:**
 - Use `SQLModel` with `table=True`
 - Primary key: `Optional[int] = Field(default=None, primary_key=True)`
 - Index frequently queried fields: `index=True`
-- Use `datetime.now(timezone.utc)` for timestamps
+- **Datetime fields**: Use `Column(DateTime(timezone=True), nullable=False)` with `default_factory=lambda: datetime.now(timezone.utc)`
+- **Optional datetime fields**: Use `Column(DateTime(timezone=True))` with `default=None`
 - Use `Field()` for constraints (max_length, gt, etc.)
 
 ## Step 2: Create Schemas

@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import Column, DateTime, Field, SQLModel
 
 
 class TelegramUser(SQLModel, table=True):
@@ -14,7 +14,13 @@ class TelegramUser(SQLModel, table=True):
     is_active: bool = Field(default=True, index=True)
     is_bot: bool = Field(default=False)
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc), index=True
+        sa_column=Column(DateTime(timezone=True), nullable=False, index=True),
+        default_factory=lambda: datetime.now(timezone.utc),
     )
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    last_interaction_at: Optional[datetime] = Field(default=None, index=True)
+    updated_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
+    last_interaction_at: Optional[datetime] = Field(
+        sa_column=Column(DateTime(timezone=True), index=True), default=None
+    )

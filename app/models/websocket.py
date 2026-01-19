@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import Optional
-from sqlmodel import Field, SQLModel
+from sqlmodel import Column, DateTime, Field, SQLModel
 
 
 class WSSubscription(SQLModel, table=True):
@@ -8,8 +8,14 @@ class WSSubscription(SQLModel, table=True):
     subscription_id: str = Field(unique=True, index=True)
     username: str = Field(index=True)
     topic: str = Field(index=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
+    updated_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
 
 
 class WSSubscriptionRow(SQLModel, table=True):
@@ -18,4 +24,7 @@ class WSSubscriptionRow(SQLModel, table=True):
     record_id: int = Field(index=True)
     row_index: int
     record_data: str
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(timezone.utc),
+    )

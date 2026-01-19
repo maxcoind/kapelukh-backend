@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
-from sqlalchemy import Column, BigInteger, JSON, Text
-from sqlmodel import Field, SQLModel
+from sqlalchemy import BigInteger, JSON, Text
+from sqlmodel import Column, DateTime, Field, SQLModel
 
 
 class Survey(SQLModel, table=True):
@@ -13,8 +13,14 @@ class Survey(SQLModel, table=True):
         sa_column=Column(BigInteger, unique=True, index=True),
         description="Telegram ID пользователя",
     )
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
+    updated_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
 
     full_name: Dict[str, str] = Field(default={}, sa_column=Column(JSON))
     super_powers: List[str] = Field(default=[], sa_column=Column(JSON))
