@@ -15,7 +15,7 @@ services:
       - public_net
 
   db:
-    image: postgres:13
+    image: postgres:18
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
